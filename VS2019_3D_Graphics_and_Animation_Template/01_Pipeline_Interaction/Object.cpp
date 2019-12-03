@@ -20,7 +20,7 @@ Object::Object()
 {
 	position = glm::vec3(0, 0, 0);
 	rotation = glm::vec3(0, 0, 0);
-	scale = glm::vec3(0.1f, 0.10f, 0.1f);
+	scale = glm::vec3(0.1f, 0.1f, 0.1f);
 
 }
 
