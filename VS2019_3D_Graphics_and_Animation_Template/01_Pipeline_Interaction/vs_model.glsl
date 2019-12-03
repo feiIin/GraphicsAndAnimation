@@ -8,6 +8,7 @@ out VS_OUT
 {
     vec2 tc;
     vec3 normals;
+	vec3 pos;
 } vs_out;
 
 uniform mat4 model_matrix;
@@ -20,4 +21,5 @@ void main(void)
 
     vs_out.tc = tc;
     vs_out.normals = normals;
+	vs_out.pos = position;
 }
