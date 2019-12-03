@@ -203,7 +203,7 @@ void startup() {
 	lights.LoadTextures("bed_texture.png");
 
 	book.LoadObject("book.obj");
-	book.LoadTextures("book - Copy.png");
+	book.LoadTextures("book.png");
 	book.position = glm::vec3(0.05f, 0.265f, -0.35f);
 	book.rotation.y = 0.0f;
 
@@ -302,12 +302,12 @@ void render(GLfloat currentTime) {
 		cameraUp);						// up
 
 
-	banana.Render(program, viewMatrix, proj_matrix);
-	room.Render(program, viewMatrix, proj_matrix);
-	dinosaur.Render(program, viewMatrix, proj_matrix);
-	lights.Render(program, viewMatrix, proj_matrix);
-	bed.Render(program, viewMatrix, proj_matrix);
-	book.Render(program, viewMatrix, proj_matrix);
+	banana.Render(program, viewMatrix, proj_matrix, cameraPosition);
+	room.Render(program, viewMatrix, proj_matrix, cameraPosition);
+	dinosaur.Render(program, viewMatrix, proj_matrix, cameraPosition);
+	lights.Render(program, viewMatrix, proj_matrix, cameraPosition);
+	bed.Render(program, viewMatrix, proj_matrix, cameraPosition);
+	book.Render(program, viewMatrix, proj_matrix, cameraPosition);
 
 }
 
