@@ -7,11 +7,20 @@
 #include <glm\gtx\transform.hpp>
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
+
+
+// --------- create lights
+
+glm::vec3 LightPosition = glm::vec3(0.0f, 23.0f, 0.0f);
+glm::vec3 LightColour = glm::vec3(0.5f, 0.5f, 0.5f);
+//glm::vec3 ObjectColour = glm::vec3(1.0f, 1.0f, 1.0f);
+// create new light for object lamp
+
 Object::Object()
 {
 	position = glm::vec3(0, 0, 0);
 	rotation = glm::vec3(0, 0, 0);
-	scale = glm::vec3(0.1f, 0.1f, 0.1f);
+	scale = glm::vec3(0.1f, 0.10f, 0.1f);
 
 }
 
@@ -27,7 +36,8 @@ void Object::LoadTextures(string texName)
 	// Load Texture OPENGL 4.3
 	string name = texName;
 	glGenTextures(1, &texture);
-	stbi_set_flip_vertically_on_load(true);
+	stbi_set_flip_vertically_on_load(true);
+
 	// Load image Information.
 	int iWidth, iHeight, iChannels;
 	unsigned char* iData = stbi_load(name.c_str(), &iWidth, &iHeight, &iChannels, 0);
@@ -54,9 +64,8 @@ void Object::LoadTextures(string texName)
 
 }
 
-void Object::Render(GLuint program, glm::mat4 viewMatrix, glm::mat4 proj_matrix)
+void Object::Render(GLuint program, glm::mat4 viewMatrix, glm::mat4 proj_matrix, glm::vec3 viewPos)
 {
-
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture);
@@ -73,6 +82,13 @@ void Object::Render(GLuint program, glm::mat4 viewMatrix, glm::mat4 proj_matrix)
 	glUniformMatrix4fv(glGetUniformLocation(program, "view_matrix"), 1, GL_FALSE, &viewMatrix[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(program, "proj_matrix"), 1, GL_FALSE, &proj_matrix[0][0]);
 	glUniform1i(glGetUniformLocation(program, "tex"), 0);
+
+	//-----------------------Lights
+	glUniform3f(glGetUniformLocation(program, "lightPos"), LightPosition.x, LightPosition.y, LightPosition.z);
+	glUniform3f(glGetUniformLocation(program, "lightColor"), LightColour.x, LightColour.y, LightColour.z);
+	//glUniform3f(glGetUniformLocation(program, "objectColor"), ObjectColour.x, ObjectColour.y, LightPosition.z);
+
+	glUniform3f(glGetUniformLocation(program, "viewPos"), viewPos.x, viewPos.y, viewPos.z);
 
 	mesh.Draw();
 
