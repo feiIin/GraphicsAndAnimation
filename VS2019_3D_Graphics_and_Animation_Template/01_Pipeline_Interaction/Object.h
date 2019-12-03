@@ -14,7 +14,7 @@ public:
 	void LoadObject(string meshName);
 	void LoadTextures(string texName);
 	//SEND POSITIONS ETC TO SHADER
-	void Render(GLuint program, glm::mat4 viewMatrix, glm::mat4 proj_matrix);
+	void Render(GLuint program, glm::mat4 viewMatrix, glm::mat4 proj_matrix, glm::vec3 viewPos);
 
 	glm::vec3 position;
 	glm::vec3 rotation;
