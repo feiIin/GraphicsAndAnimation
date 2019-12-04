@@ -59,7 +59,7 @@ int				windowWidth = 640;
 int				windowHeight = 480;
 bool			running = true;									// Are we still running?
 glm::mat4		proj_matrix;									// Projection Matrix
-glm::vec3		cameraPosition = glm::vec3(0.0f, 0.0f, 5.0f);	// Week 5 lecture
+glm::vec3		cameraPosition = glm::vec3(0.03f, .3f, 0.1f);	// Week 5 lecture
 glm::vec3		cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3		cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 float           aspect = (float)windowWidth / (float)windowHeight;
@@ -77,6 +77,7 @@ Object bed;
 Object dinosaur;
 Object lights;
 Object book;
+Object bananatry;
 
 // FPS camera variables
 GLfloat			yaw = -90.0f;	// init pointing to inside
@@ -102,8 +103,8 @@ int main()
 
 	// Fullscreen
 	const GLFWvidmode * mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-	// windowWidth = mode->width; windowHeight = mode->height; //fullscreen
-	// window = glfwCreateWindow(windowWidth, windowHeight, title.c_str(), glfwGetPrimaryMonitor(), NULL); // fullscreen
+	windowWidth = mode->width; windowHeight = mode->height; //fullscreen
+	window = glfwCreateWindow(windowWidth, windowHeight, title.c_str(), glfwGetPrimaryMonitor(), NULL); // fullscreen
 
 	// Window
 	window = glfwCreateWindow(windowWidth, windowHeight, title.c_str(), NULL, NULL);
@@ -187,8 +188,14 @@ void setupRender() {
 void startup() {
 
 	// Load main object model and shaders
-	banana.LoadObject("banana.obj");
-	banana.LoadTextures("bananaAI-o.png");
+	//banana.LoadObject("banana.obj");
+	//banana.LoadTextures("bananaAI-o.png");
+
+	bananatry.LoadObject("bananatry.obj");
+	bananatry.LoadTextures("bananaAI-o.png");
+	bananatry.position = glm::vec3(0.075f, 0.230f, -0.25f);
+	bananatry.scale = glm::vec3(0.17f, 0.17f, 0.17f);
+	bananatry.rotation = glm::vec3(0, -1.2, 0);
 
 	room.LoadObject("room.obj");
 	room.LoadTextures("room-Copy.png");
@@ -263,10 +270,10 @@ void update(GLfloat currentTime)
 //	}
 
 
-	if (keyStatus[GLFW_KEY_LEFT])			banana.rotation.y += 0.05f;
-	if (keyStatus[GLFW_KEY_RIGHT])			banana.rotation.y -= 0.05f;
-	if (keyStatus[GLFW_KEY_UP])				banana.rotation.x += 0.05f;
-	if (keyStatus[GLFW_KEY_DOWN])			banana.rotation.x -= 0.05f;
+	if (keyStatus[GLFW_KEY_LEFT])			bananatry.position.z += 0.05f * deltaTime;
+	if (keyStatus[GLFW_KEY_RIGHT])			bananatry.position.z -= 0.05f * deltaTime;
+	if (keyStatus[GLFW_KEY_UP])				bananatry.position.x -= 0.05f * deltaTime;
+	if (keyStatus[GLFW_KEY_DOWN])			bananatry.position.x = 0.05f * deltaTime;
 //	if (keyStatus[GLFW_KEY_KP_ADD])			bananoTemo.scale.z += 0.10f;
 //	if (keyStatus[GLFW_KEY_KP_SUBTRACT])	bananoTemp.scale.z -= 0.10f;
 // calculate movement
@@ -302,7 +309,8 @@ void render(GLfloat currentTime) {
 		cameraUp);						// up
 
 
-	banana.Render(program, viewMatrix, proj_matrix, cameraPosition);
+	//banana.Render(program, viewMatrix, proj_matrix, cameraPosition);
+	bananatry.Render(program, viewMatrix, proj_matrix, cameraPosition);
 	room.Render(program, viewMatrix, proj_matrix, cameraPosition);
 	dinosaur.Render(program, viewMatrix, proj_matrix, cameraPosition);
 	lights.Render(program, viewMatrix, proj_matrix, cameraPosition);
