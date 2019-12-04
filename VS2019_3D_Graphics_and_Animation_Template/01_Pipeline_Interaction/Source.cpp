@@ -1,6 +1,3 @@
-// 3D Graphics and Animation - Main Template
-// Visual Studio 2019
-// Last Changed 01/10/2019
 
 #pragma comment(linker, "/NODEFAULTLIB:MSVCRT")
 #define GLM_ENABLE_EXPERIMENTAL
@@ -59,9 +56,9 @@ int				windowWidth = 640;
 int				windowHeight = 480;
 bool			running = true;									// Are we still running?
 glm::mat4		proj_matrix;									// Projection Matrix
-glm::vec3		cameraPosition = glm::vec3(0.075f, 0.430f, 1.0f);	
-glm::vec3		cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3		cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+glm::vec3		camera_position = glm::vec3(0.075f, 0.430f, 1.0f);	
+glm::vec3		camera_front = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3		camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
 float           aspect = (float)windowWidth / (float)windowHeight;
 float			fovy = 45.0f;
 bool			keyStatus[1024];
@@ -71,12 +68,16 @@ GLuint			program;
 GLint			proj_location;
 glm::vec3		modelPosition;
 glm::vec3		modelRotation;
-Object banana; // ------------------------ create objects
+Object princess; // ------- create objects
 Object room;
 Object bed;
 Object dinosaur;
 Object lights;
 Object book;
+Object mattress;
+Object pillows;
+Object banano;
+Object night;
 
 // Varibles for FRAMEBUFFER
 GLuint			framebuffer;
@@ -279,15 +280,15 @@ void startup() {
 	glUseProgram(displayProgram);
 
 
-	banana.LoadObject("banana.obj");
-	banana.LoadTextures("bananaAI-o.png");
-	banana.position = glm::vec3(0.075f, 0.230f, -0.25f);
+	princess.LoadObject("banana.obj");
+	princess.LoadTextures("bananaAI-o.png");
+	princess.object_position = glm::vec3(0.075f, 0.230f, -0.25f);
 
-	room.LoadObject("room.obj");
+	room.LoadObject("room3.obj");
 	room.LoadTextures("room.png");
 
 	bed.LoadObject("bed.obj");
-	bed.LoadTextures("bed_texture.png");
+	bed.LoadTextures("wood1.png");
 
 	dinosaur.LoadObject("dinodino.obj");
 	dinosaur.LoadTextures("dinodino.png");
@@ -297,8 +298,20 @@ void startup() {
 
 	book.LoadObject("book.obj");
 	book.LoadTextures("book.png");
-	book.position = glm::vec3(0.05f, 0.265f, -0.35f);
-	book.rotation.y = 0.0f;
+	book.object_position = glm::vec3(0.05f, 0.265f, -0.35f);
+	book.object_rotation.y = 0.0f;
+
+	mattress.LoadObject("mattress.obj");
+	mattress.LoadTextures("bed1.png");
+
+	pillows.LoadObject("pillows.obj");
+	pillows.LoadTextures("bedreversed.png");
+
+	banano.LoadObject("banano.obj");
+	banano.LoadTextures("banano.png");
+
+	night.LoadObject("night.obj");
+	night.LoadTextures("night.png");
 
 	program = glCreateProgram();
 
@@ -339,26 +352,26 @@ void startup() {
 bool increasing;
 void update(GLfloat currentTime)
 {
-	book.rotation.y += 0.01f;
+	book.object_rotation.y += 0.01f;
 
-	if (keyStatus[GLFW_KEY_RIGHT])			banana.position.z -= 0.1f * deltaTime;
-	if (keyStatus[GLFW_KEY_LEFT])			banana.position.z += 0.1f * deltaTime;
-	if (keyStatus[GLFW_KEY_UP])				banana.position.x -= 0.1f * deltaTime;
-	if (keyStatus[GLFW_KEY_DOWN])			banana.position.x += 0.1f * deltaTime;
+	if (keyStatus[GLFW_KEY_RIGHT])			princess.object_position.z -= 0.1f * deltaTime;
+	if (keyStatus[GLFW_KEY_LEFT])			princess.object_position.z += 0.1f * deltaTime;
+	if (keyStatus[GLFW_KEY_UP])				princess.object_position.x -= 0.1f * deltaTime;
+	if (keyStatus[GLFW_KEY_DOWN])			princess.object_position.x += 0.1f * deltaTime;
 
-	if (keyStatus[GLFW_KEY_J])				dinosaur.position.z -= 0.1f * deltaTime;
-	if (keyStatus[GLFW_KEY_L])				dinosaur.position.z += 0.1f * deltaTime;
-	if (keyStatus[GLFW_KEY_K])				dinosaur.position.x -= 0.1f * deltaTime;
-	if (keyStatus[GLFW_KEY_I])				dinosaur.position.x += 0.1f * deltaTime;
+	if (keyStatus[GLFW_KEY_J])				dinosaur.object_position.z -= 0.1f * deltaTime;
+	if (keyStatus[GLFW_KEY_L])				dinosaur.object_position.z += 0.1f * deltaTime;
+	if (keyStatus[GLFW_KEY_K])				dinosaur.object_position.x -= 0.1f * deltaTime;
+	if (keyStatus[GLFW_KEY_I])				dinosaur.object_position.x += 0.1f * deltaTime;
 	//	if (keyStatus[GLFW_KEY_KP_ADD])			bananoTemo.scale.z += 0.10f;
 	//	if (keyStatus[GLFW_KEY_KP_SUBTRACT])	bananoTemp.scale.z -= 0.10f;
 	// calculate movement
-	GLfloat cameraSpeed = .5f * deltaTime;
+	GLfloat camera_speed = .5f * deltaTime;
 	
-	if (keyStatus[GLFW_KEY_W]) cameraPosition += cameraSpeed * cameraFront;
-	if (keyStatus[GLFW_KEY_S]) cameraPosition -= cameraSpeed * cameraFront;
-	if (keyStatus[GLFW_KEY_A]) cameraPosition -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-	if (keyStatus[GLFW_KEY_D]) cameraPosition += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+	if (keyStatus[GLFW_KEY_W]) camera_position += camera_speed * camera_front;
+	if (keyStatus[GLFW_KEY_S]) camera_position -= camera_speed * camera_front;
+	if (keyStatus[GLFW_KEY_A]) camera_position -= glm::normalize(glm::cross(camera_front, camera_up)) * camera_speed;
+	if (keyStatus[GLFW_KEY_D]) camera_position += glm::normalize(glm::cross(camera_front, camera_up)) * camera_speed;
 }
 
 void render(GLfloat currentTime) {
@@ -366,7 +379,6 @@ void render(GLfloat currentTime) {
 
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 	glEnable(GL_DEPTH_TEST);
-	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebufferTexture, 0);
 
 	glViewport(0, 0, windowWidth, windowHeight);
 
@@ -379,18 +391,22 @@ void render(GLfloat currentTime) {
 	glUseProgram(program);
 
 	//===========SET UP THE CAMERA===============
-	glm::mat4 viewMatrix = glm::lookAt(
-		cameraPosition,					// eye
-		cameraPosition + cameraFront,	// centre
-		cameraUp);						// up
+	glm::mat4 view_matrix = glm::lookAt(
+		camera_position,					// eye
+		camera_position + camera_front,	// centre
+		camera_up);						// up
 
 	//===========RENDER OBJECTS===============
-	banana.Render(program, viewMatrix, proj_matrix, cameraPosition);
-	room.Render(program, viewMatrix, proj_matrix, cameraPosition);
-	dinosaur.Render(program, viewMatrix, proj_matrix, cameraPosition);
-	lights.Render(program, viewMatrix, proj_matrix, cameraPosition);
-	bed.Render(program, viewMatrix, proj_matrix, cameraPosition);
-	book.Render(program, viewMatrix, proj_matrix, cameraPosition);
+	princess.Render(program, view_matrix, proj_matrix, camera_position);
+	room.Render(program, view_matrix, proj_matrix, camera_position);
+	dinosaur.Render(program, view_matrix, proj_matrix, camera_position);
+	lights.Render(program, view_matrix, proj_matrix, camera_position);
+	bed.Render(program, view_matrix, proj_matrix, camera_position);
+	book.Render(program, view_matrix, proj_matrix, camera_position);
+	banano.Render(program, view_matrix, proj_matrix, camera_position);
+	mattress.Render(program, view_matrix, proj_matrix, camera_position);
+	pillows.Render(program, view_matrix, proj_matrix, camera_position);
+	night.Render(program, view_matrix, proj_matrix, camera_position);
 
 	//===========FRAME BUFFER===============
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);	// Disable rendering framebuffer to texture - aka render normally.
@@ -457,7 +473,7 @@ void onMouseMoveCallback(GLFWwindow* window, double x, double y) {
 	front.y = sin(glm::radians(pitch));
 	front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
 
-	cameraFront = glm::normalize(front);
+	camera_front = glm::normalize(front);
 }
 
 static void onMouseWheelCallback(GLFWwindow* window, double xoffset, double yoffset) {
