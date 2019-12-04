@@ -9,7 +9,7 @@ in VS_OUT
 	vec3 pos;
 } fs_in;
 
-uniform mat4 model_matrix;
+uniform mat4 model_matriLightsx;
 layout(binding=0) uniform sampler2D tex;
 
 
@@ -23,9 +23,6 @@ uniform vec3 objectColor;
 //Lights---------------------------------------------------
 
 void main(void){
-  //color = vec4(1.0,1.0,1.0,1.0);
-  //color = vec4(fs_in.normals, 1.0);
-  //color = texture(tex, fs_in.tc);
 
   // ambient
     float ambientStrength = 0.1;

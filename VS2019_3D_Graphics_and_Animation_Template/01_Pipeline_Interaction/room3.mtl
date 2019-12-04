@@ -7,17 +7,12 @@ map_Kd bed.png
 Ni 1.00
 newmtl lambert11SG
 illum 4
-Kd 0.50 0.50 0.50
+Kd 0.00 0.00 0.00
 Ka 0.00 0.00 0.00
 Tf 1.00 1.00 1.00
+map_Kd bedreversed.jpg
 Ni 1.00
 newmtl lambert12SG
-illum 4
-Kd 0.50 0.50 0.50
-Ka 0.00 0.00 0.00
-Tf 1.00 1.00 1.00
-Ni 1.00
-newmtl lambert14SG
 illum 4
 Kd 0.50 0.50 0.50
 Ka 0.00 0.00 0.00
@@ -36,6 +31,33 @@ Kd 0.00 0.00 0.00
 Ka 0.00 0.00 0.00
 Tf 1.00 1.00 1.00
 map_Kd dinodino.png
+Ni 1.00
+newmtl lambert17SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd wood1.jpg
+Ni 1.00
+newmtl lambert18SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd bed1.jpg
+Ni 1.00
+newmtl lambert19SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl lambert20SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd banano.png
 Ni 1.00
 newmtl pasted__lambert2SG
 illum 4
@@ -64,4 +86,24 @@ Kd 0.00 0.00 0.00
 Ka 0.00 0.00 0.00
 Tf 1.00 1.00 1.00
 map_Kd lampade.png
+Ni 1.00
+newmtl pasted__lambert11SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd bedreversed.jpg
+Ni 1.00
+newmtl pasted__lambert19SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl pasted__pasted__lambert6SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd night.png
 Ni 1.00

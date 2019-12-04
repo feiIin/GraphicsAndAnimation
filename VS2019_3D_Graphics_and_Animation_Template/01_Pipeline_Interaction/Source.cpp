@@ -1,3 +1,6 @@
+// 3D Graphics and Animation - Main Template
+// Visual Studio 2019
+// Last Changed 01/10/2019
 
 #pragma comment(linker, "/NODEFAULTLIB:MSVCRT")
 #define GLM_ENABLE_EXPERIMENTAL
