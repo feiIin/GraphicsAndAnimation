@@ -20,7 +20,7 @@ using namespace std;
 
 //#include <stb_image.h>			// Add library to load images for textures
 
-#include "Mesh.h"				// Simplest mesh holder and OBJ loader - can update more - from https://github.com/BennyQBD/ModernOpenGLTutorial
+#include "Mesh.h"				// Simplest mesh holder and OBJ loader 
 #include "Object.h"
 
 
@@ -54,12 +54,12 @@ void onMouseWheelCallback(GLFWwindow* window, double xoffset, double yoffset);
 
 
 // VARIABLES
-GLFWwindow*		window;											// Keep track of the window
-int				windowWidth = 640;				
+GLFWwindow* window;											// Keep track of the window
+int				windowWidth = 640;
 int				windowHeight = 480;
 bool			running = true;									// Are we still running?
 glm::mat4		proj_matrix;									// Projection Matrix
-glm::vec3		cameraPosition = glm::vec3(0.03f, .3f, 0.1f);	// Week 5 lecture
+glm::vec3		cameraPosition = glm::vec3(0.075f, 0.430f, 1.0f);	
 glm::vec3		cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3		cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 float           aspect = (float)windowWidth / (float)windowHeight;
@@ -77,7 +77,17 @@ Object bed;
 Object dinosaur;
 Object lights;
 Object book;
-Object bananatry;
+
+// Varibles for FRAMEBUFFER
+GLuint			framebuffer;
+GLuint			framebufferTexture;
+GLuint			depthbuffer;
+GLuint			displayVao;
+GLuint			displayBuffer[2];
+std::vector < glm::vec2 > displayVertices;
+std::vector < glm::vec2 > displayUvs;
+GLuint			displayProgram;
+
 
 // FPS camera variables
 GLfloat			yaw = -90.0f;	// init pointing to inside
@@ -92,7 +102,7 @@ int main()
 	if (!glfwInit()) {							// Checking for GLFW
 		cout << "Could not initialise GLFW...";
 		return 0;
-	}	
+	}
 
 	glfwSetErrorCallback(errorCallbackGLFW);	// Setup a function to catch and display all GLFW errors.
 
@@ -102,7 +112,7 @@ int main()
 	string title = "My OpenGL Application";
 
 	// Fullscreen
-	const GLFWvidmode * mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+	const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 	windowWidth = mode->width; windowHeight = mode->height; //fullscreen
 	window = glfwCreateWindow(windowWidth, windowHeight, title.c_str(), glfwGetPrimaryMonitor(), NULL); // fullscreen
 
@@ -138,6 +148,9 @@ int main()
 
 	setupRender();								// setup some render variables.
 	startup();									// Setup all necessary information for startup (aka. load texture, shaders, models, etc).
+
+
+
 
 	do {										// run until the window is closed
 		GLfloat currentTime = (GLfloat)glfwGetTime();		// retrieve timelapse
@@ -187,18 +200,91 @@ void setupRender() {
 
 void startup() {
 
-	// Load main object model and shaders
-	//banana.LoadObject("banana.obj");
-	//banana.LoadTextures("bananaAI-o.png");
+	// ----------Start Framebuffer Object---------------
+	glGenFramebuffers(1, &framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
-	bananatry.LoadObject("bananatry.obj");
-	bananatry.LoadTextures("bananaAI-o.png");
-	bananatry.position = glm::vec3(0.075f, 0.230f, -0.25f);
-	bananatry.scale = glm::vec3(0.17f, 0.17f, 0.17f);
-	bananatry.rotation = glm::vec3(0, -1.2, 0);
+	// Create a texture for the framebuffer
+	glGenTextures(1, &framebufferTexture);
+
+	// Bind this texture so we can modify it.
+	glBindTexture(GL_TEXTURE_2D, framebufferTexture);
+
+	//  Start the texture and give it a size but no data- of course if you resize you need to change your texture.
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, windowWidth, windowHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+
+	// filtering needed 
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	// Depth buffer texture	- Need to attach depth too otherwise depth testing will not be performed.
+	glGenRenderbuffers(1, &depthbuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, depthbuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, windowWidth, windowHeight);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthbuffer);
+
+	// Create a quad to display our framebuffer
+	displayVertices.push_back(glm::vec2(-1.0f, 1.0f));
+	displayVertices.push_back(glm::vec2(-1.0f, -1.0f));
+	displayVertices.push_back(glm::vec2(1.0f, -1.0f));
+	displayVertices.push_back(glm::vec2(-1.0f, 1.0f));
+	displayVertices.push_back(glm::vec2(1.0f, -1.0f));
+	displayVertices.push_back(glm::vec2(1.0f, 1.0f));
+
+	displayUvs.push_back(glm::vec2(0.0f, 1.0f));
+	displayUvs.push_back(glm::vec2(0.0f, 0.0f));
+	displayUvs.push_back(glm::vec2(1.0f, 0.0f));
+	displayUvs.push_back(glm::vec2(0.0f, 1.0f));
+	displayUvs.push_back(glm::vec2(1.0f, 0.0f));
+	displayUvs.push_back(glm::vec2(1.0f, 1.0f));
+
+	glGenBuffers(2, displayBuffer);        // Create a new buffer   
+	glBindBuffer(GL_ARRAY_BUFFER, displayBuffer[0]);
+	glBufferData(GL_ARRAY_BUFFER, displayVertices.size() * sizeof(glm::vec2), &displayVertices[0], GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, displayBuffer[1]);
+	glBufferData(GL_ARRAY_BUFFER, displayUvs.size() * sizeof(glm::vec2), &displayUvs[0], GL_STATIC_DRAW);
+
+	glGenVertexArrays(1, &displayVao);        // Create Vertex Array Object
+	glBindVertexArray(displayVao);        // Bind VertexArrayObject
+
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0); // vertices
+	glEnableVertexAttribArray(0);
+
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0); //uv
+	glEnableVertexAttribArray(1);
+
+	//glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebufferTexture, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	//load shaders for framebuffer displays
+	displayProgram = glCreateProgram();
+
+	string dvs_text = readShader("vs_display.glsl"); const char* dvs_source = dvs_text.c_str();
+	GLuint dvs = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(dvs, 1, &dvs_source, NULL);
+	glCompileShader(dvs);
+	checkErrorShader(dvs);
+	glAttachShader(displayProgram, dvs);
+
+	string dfs_text = readShader("fs_display.glsl"); const char* dfs_source = dfs_text.c_str();
+	GLuint dfs = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(dfs, 1, &dfs_source, NULL);
+	glCompileShader(dfs);
+	checkErrorShader(dfs);
+	glAttachShader(displayProgram, dfs);
+
+	glLinkProgram(displayProgram);
+	glUseProgram(displayProgram);
+
+
+	banana.LoadObject("banana.obj");
+	banana.LoadTextures("bananaAI-o.png");
+	banana.position = glm::vec3(0.075f, 0.230f, -0.25f);
 
 	room.LoadObject("room.obj");
-	room.LoadTextures("room-Copy.png");
+	room.LoadTextures("room.png");
 
 	bed.LoadObject("bed.obj");
 	bed.LoadTextures("bed_texture.png");
@@ -207,7 +293,7 @@ void startup() {
 	dinosaur.LoadTextures("dinodino.png");
 
 	lights.LoadObject("lights.obj");
-	lights.LoadTextures("bed_texture.png");
+	lights.LoadTextures("lampade.png");
 
 	book.LoadObject("book.obj");
 	book.LoadTextures("book.png");
@@ -236,7 +322,7 @@ void startup() {
 	// Start from the centre
 	modelPosition = glm::vec3(0.0f, 0.0f, 0.0f);
 	modelRotation = glm::vec3(0.0f, 0.0f, 0.0f);
-	
+
 	// A few optimizations.
 	glFrontFace(GL_CCW);
 	glCullFace(GL_BACK);
@@ -255,67 +341,73 @@ void update(GLfloat currentTime)
 {
 	book.rotation.y += 0.01f;
 
-//	if (book.rotation.y < 0.2f && increasing == true) {
-//
-//		book.rotation.y += 0.07f;
-//	}
-//	else if (book.rotation.y > 1.9f) {
-//		increasing == false;
-//	}
-//	else if (book.rotation.y > -0.2f && increasing == false) {
-//		book.rotation.y -= 0.07f;
-//	}
-//	else if (book.rotation.y < -0.18f) {
-//		increasing == true;
-//	}
+	if (keyStatus[GLFW_KEY_RIGHT])			banana.position.z -= 0.1f * deltaTime;
+	if (keyStatus[GLFW_KEY_LEFT])			banana.position.z += 0.1f * deltaTime;
+	if (keyStatus[GLFW_KEY_UP])				banana.position.x -= 0.1f * deltaTime;
+	if (keyStatus[GLFW_KEY_DOWN])			banana.position.x += 0.1f * deltaTime;
 
-
-	if (keyStatus[GLFW_KEY_LEFT])			bananatry.position.z += 0.05f * deltaTime;
-	if (keyStatus[GLFW_KEY_RIGHT])			bananatry.position.z -= 0.05f * deltaTime;
-	if (keyStatus[GLFW_KEY_UP])				bananatry.position.x -= 0.05f * deltaTime;
-	if (keyStatus[GLFW_KEY_DOWN])			bananatry.position.x = 0.05f * deltaTime;
-//	if (keyStatus[GLFW_KEY_KP_ADD])			bananoTemo.scale.z += 0.10f;
-//	if (keyStatus[GLFW_KEY_KP_SUBTRACT])	bananoTemp.scale.z -= 0.10f;
-// calculate movement
-GLfloat cameraSpeed = 1.0f * deltaTime;
-if (keyStatus[GLFW_KEY_W]) cameraPosition += cameraSpeed * cameraFront;
-if (keyStatus[GLFW_KEY_S]) cameraPosition -= cameraSpeed * cameraFront;
-if (keyStatus[GLFW_KEY_A]) cameraPosition -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-if (keyStatus[GLFW_KEY_A]) cameraPosition -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-if (keyStatus[GLFW_KEY_D]) cameraPosition += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+	if (keyStatus[GLFW_KEY_J])				dinosaur.position.z -= 0.1f * deltaTime;
+	if (keyStatus[GLFW_KEY_L])				dinosaur.position.z += 0.1f * deltaTime;
+	if (keyStatus[GLFW_KEY_K])				dinosaur.position.x -= 0.1f * deltaTime;
+	if (keyStatus[GLFW_KEY_I])				dinosaur.position.x += 0.1f * deltaTime;
+	//	if (keyStatus[GLFW_KEY_KP_ADD])			bananoTemo.scale.z += 0.10f;
+	//	if (keyStatus[GLFW_KEY_KP_SUBTRACT])	bananoTemp.scale.z -= 0.10f;
+	// calculate movement
+	GLfloat cameraSpeed = .5f * deltaTime;
+	
+	if (keyStatus[GLFW_KEY_W]) cameraPosition += cameraSpeed * cameraFront;
+	if (keyStatus[GLFW_KEY_S]) cameraPosition -= cameraSpeed * cameraFront;
+	if (keyStatus[GLFW_KEY_A]) cameraPosition -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+	if (keyStatus[GLFW_KEY_D]) cameraPosition += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 }
 
 void render(GLfloat currentTime) {
+	//===========RENDER FRAMEBUFFER TO TEXTURE===============
+
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	glEnable(GL_DEPTH_TEST);
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebufferTexture, 0);
+
 	glViewport(0, 0, windowWidth, windowHeight);
 
-	// Clear colour buffer
+	//Clear colour and deep buffer
 	glm::vec4 backgroundColor = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f); glClearBufferfv(GL_COLOR, 0, &backgroundColor[0]);
-
-	// Clear deep buffer
 	static const GLfloat one = 1.0f; glClearBufferfv(GL_DEPTH, 0, &one);
 
 	// Enable blend
 	glEnable(GL_BLEND); glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-
-	// Use our shader programs
 	glUseProgram(program);
 
-
-	// Setup camera
-		glm::mat4 viewMatrix = glm::lookAt(
+	//===========SET UP THE CAMERA===============
+	glm::mat4 viewMatrix = glm::lookAt(
 		cameraPosition,					// eye
 		cameraPosition + cameraFront,	// centre
 		cameraUp);						// up
 
-
-	//banana.Render(program, viewMatrix, proj_matrix, cameraPosition);
-	bananatry.Render(program, viewMatrix, proj_matrix, cameraPosition);
+	//===========RENDER OBJECTS===============
+	banana.Render(program, viewMatrix, proj_matrix, cameraPosition);
 	room.Render(program, viewMatrix, proj_matrix, cameraPosition);
 	dinosaur.Render(program, viewMatrix, proj_matrix, cameraPosition);
 	lights.Render(program, viewMatrix, proj_matrix, cameraPosition);
 	bed.Render(program, viewMatrix, proj_matrix, cameraPosition);
 	book.Render(program, viewMatrix, proj_matrix, cameraPosition);
+
+	//===========FRAME BUFFER===============
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);	// Disable rendering framebuffer to texture - aka render normally.
+	glViewport(-windowWidth, -windowHeight, windowWidth * 2.0f, windowHeight * 2.0f);
+
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glDisable(GL_DEPTH_TEST);
+
+	glUseProgram(displayProgram);
+	glUniform1f(glGetUniformLocation(displayProgram, "width"), windowWidth);
+	glUniform1f(glGetUniformLocation(displayProgram, "height"), windowHeight);
+	glBindVertexArray(displayVao);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, framebufferTexture);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glBindVertexArray(0);
 
 }
 
@@ -336,7 +428,7 @@ void onKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mo
 }
 
 void onMouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
-	
+
 }
 
 void onMouseMoveCallback(GLFWwindow* window, double x, double y) {
@@ -348,7 +440,7 @@ void onMouseMoveCallback(GLFWwindow* window, double x, double y) {
 	}
 
 	GLfloat xoffset = mouseX - lastX;
-	GLfloat yoffset = lastY - mouseY; // Reversed
+	  GLfloat yoffset = lastY - mouseY; // Reversed
 	lastX = (float)mouseX; lastY = (float)mouseY;
 
 	GLfloat sensitivity = 0.05f;
@@ -374,9 +466,9 @@ static void onMouseWheelCallback(GLFWwindow* window, double xoffset, double yoff
 
 void debugGL() {
 	//Output some debugging information
-	cout << "VENDOR: " << (char *)glGetString(GL_VENDOR) << endl;
-	cout << "VERSION: " << (char *)glGetString(GL_VERSION) << endl;
-	cout << "RENDERER: " << (char *)glGetString(GL_RENDERER) << endl;
+	cout << "VENDOR: " << (char*)glGetString(GL_VENDOR) << endl;
+	cout << "VERSION: " << (char*)glGetString(GL_VERSION) << endl;
+	cout << "RENDERER: " << (char*)glGetString(GL_RENDERER) << endl;
 
 	// Enable Opengl Debug
 	//glEnable(GL_DEBUG_OUTPUT);
